@@ -64,7 +64,7 @@ std::vector<std::wstring> LoudnessCorrectionFilter::initialize(float sampleRate,
 	_attFactor = 1.0;
 	_neutral = true;
 
-	double freqLS = 75, qLS = 1, gainLS = 0;
+	double freqLS = 80, qLS = 0.33, gainLS = 0;
 	double freqHS = 10000, qHS = 1, gainHS = 0;
 	VolumeController VolumeController;
 	float vol;
@@ -92,17 +92,18 @@ std::vector<std::wstring> LoudnessCorrectionFilter::initialize(float sampleRate,
 
 void LoudnessCorrectionFilter::getLShelfParamter(const float& volume, double& frequence, double& q, double& gain, double& preAmp)
 {
-	frequence = 75;
-	q = 0.52;
+	frequence = 80;
+	q = 0.33;
 	float volDiff = _parameters.referenceLevel - _parameters.referenceOffset - volume;
 	if (volDiff > 0)
 	{
 		// old: gain=volDiff*0.55*_parameters.attenuation;
-		gain = volDiff * 0.55 / (1 - 0.55) * _parameters.attenuation;
+		gain = 2 * volDiff * _parameters.attenuation;
 		preAmp = -gain;
 	}
 	else if (volDiff < 0)
 	{
+		// TODO
 		preAmp = 0.0;
 		gain = volDiff * 0.55 * exp(volDiff / 90.0) * _parameters.attenuation;
 	}
@@ -114,14 +115,15 @@ void LoudnessCorrectionFilter::getLShelfParamter(const float& volume, double& fr
 void LoudnessCorrectionFilter::getHShelfParamter(const float& volume, double& frequence, double& q, double& gain)
 {
 	frequence = 10000;
-	q = 0.9;
+	q = 1;
 	float volDiff = _parameters.referenceLevel - _parameters.referenceOffset - volume;
 	if (volDiff > 0)
 	{
-		gain = volDiff * 0.225 * exp(-volDiff / 100.0) * _parameters.attenuation;
+		gain = volDiff / 2.4 * _parameters.attenuation;
 	}
 	else if (volDiff < 0)
 	{
+		// TODO
 		gain = volDiff * 0.175 * exp(volDiff / 80.0) * _parameters.attenuation;
 	}
 	else
